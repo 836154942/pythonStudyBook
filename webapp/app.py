@@ -18,7 +18,7 @@ def init(loop):
 
 # 主页
 def index(request):
-    return web.Response(body='<h1>Awesome</h1>', content_type='text/html')
+    return web.Response(body='Awesome', content_type='text/html')
 
 
 

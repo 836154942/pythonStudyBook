@@ -21,7 +21,6 @@ def index(request):
     return web.Response(body='<h1>Awesome</h1>', content_type='text/html')
 
 
-
 loop = asyncio.get_event_loop()
 loop.run_until_complete(init(loop))
 loop.run_forever()

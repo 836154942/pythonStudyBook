@@ -45,4 +45,30 @@ def test_loop():
     loop.close()
 
 
-test_loop()
+# test_loop()
+
+# @asyncio.coroutine
+async def net_test(url):
+    print("---------------------------------------ready %s" % url)
+    connect = asyncio.open_connection(url, 80)
+    # read, write = yield from connect
+    read, write = await  connect
+    header = 'GET / HTTP/1.0\r\nHost: %s\r\n\r\n' % url
+    write.write(header.encode("utf-8"))
+    await write.drain()
+    while True:
+        line = await  read.readline()
+        if line == b'\r\n':
+            break
+        print("%s  head 是%s" % (url, line))
+    write.close()
+
+
+def test_url():
+    loop = asyncio.get_event_loop()
+    task = [net_test(url) for url in ['www.sina.com.cn', 'www.sohu.com', 'www.163.com']]
+    loop.run_until_complete(asyncio.wait(task))
+    loop.close()
+
+
+test_url()

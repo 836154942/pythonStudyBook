@@ -5,7 +5,7 @@ import asyncio
 
 @asyncio.coroutine
 def testInsert(loop):
-    yield from webapp.db.ORM.create_pool(loop=loop, user="root", password="a3071272", db='test')
+    yield from webapp.db.ORM.create_pool(loop=loop, user="root", password="root", db='test')
     u = User(name="Test2", email="test10@qq.com", passwd="test2pwd", image="test2image")
     yield from  u.save()
     yield from webapp.db.ORM.destory_pool()  # 这里先销毁连接池

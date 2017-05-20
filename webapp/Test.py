@@ -23,7 +23,7 @@ def testDelete(loop):
 @asyncio.coroutine
 def testFindAll(loop):
     yield from webapp.db.ORM.create_pool(loop=loop, user="root", password="a3071272", db='test')
-    r = yield from User.findAll("name","=test2")
+    r = yield from User.findAll()
     for item in r:
         print(item)
     yield from webapp.db.ORM.destory_pool()  # 这里先销毁连接池

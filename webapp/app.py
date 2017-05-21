@@ -43,6 +43,7 @@ async def logger_factory(app, handler):
 
 async def data_factory(app, handler):
     async def parse_data(request):
+        logging.info("data_factory ~~~")
         if request.method == "POST":
             if request.content_type.startswith('application/json'):
                 request.__data__ = await request.json()
@@ -57,7 +58,7 @@ async def data_factory(app, handler):
 
 async def response_factory(app, handler):
     async def response(request):
-        logging.info("response  handler………………")
+        logging.info("响应拦截器 response  handler………………")
         r = await handler(request)
         if isinstance(r, web.StreamResponse):
             return r

@@ -1,6 +1,8 @@
 # -- coding: utf-8 --
 import logging
 
+from webapp.coroweb import add_routes, add_static
+
 logging.basicConfig(level=logging.INFO)
 import asyncio, os, json, time
 from datetime import datetime
@@ -108,10 +110,10 @@ def data_timefilter(t):
 
 
 async def init(loop):
-    await webapp.db.ORM.create_pool(loop=loop, user="root", password="a3071272", db='test')
+    await webapp.db.ORM.create_pool(loop=loop, user="root", password="root", db='test')
     app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
     init_jinja2(app, filters=dict(datetime=data_timefilter))
-    # add_routes(app, 'handlers')
+    add_routes(app, 'handlers')
     # add_static(app)
     srv = await  loop.create_server(app.make_handler(), '127.0.0.1', 9000)
     logging.info("server started at  http://127.0.0.1:9000")

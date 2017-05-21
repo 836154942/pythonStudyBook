@@ -8,7 +8,7 @@ class APIError(Exception):
         super(APIError, self).__init__(message)
         self.error = error
         self.data = data
-        self, message = message
+        self.message = message
 
 
 class APIValueError(APIError):
@@ -24,4 +24,3 @@ class APIResourceNotFoundError(APIError):
 class APIPermissionError(APIError):
     def __init__(self, message=''):
         super(APIPermissionError, self).__init__('permission forbidden  deny ', 'permission', message)
-

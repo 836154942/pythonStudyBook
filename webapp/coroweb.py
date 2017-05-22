@@ -151,59 +151,6 @@ class RequestHandler(object):
         except APIError as e:
             return dict(error=e.error, data=e.data, message=e.message)
 
-
-# async def __call__(self, request):
-#     kw = None
-#     if self.__has_var_kw_arg or self.__has_named_kw_arg or self.__required_kw_args:
-#
-#         if request.method == "POST":
-#             if not request.content_type:
-#                 return web.HTTPBadRequest("missing ContentType  没有contexttype")
-#
-#             ct = request.content_type.lower()
-#             if ct.startsWith("application/json'"):
-#                 params = request.josn()
-#                 if not isinstance(params, dict):
-#                     return web.HTTPBadRequest('JSON body must be object. json竟然不是字典？')
-#                 kw = params
-#
-#
-#             elif ct.startsWith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
-#                 params = await request.post()
-#                 kw = dict(**params)
-#             else:
-#                 return web.HTTPBadRequest('我不认知这种方式 Unsupported Content-Type: %s' % request.content_type)
-#
-#         if request.method == "GET":
-#             qs = request.query_string
-#             if qs:
-#                 kw = dict()
-#                 for k, v in parse.parse_qs(qs, True).items():
-#                     kw[k] = v[0]
-#             if kw is None:
-#                 kw = dict(**request.match_info)
-#             else:
-#                 if not self.__has_var_kw_arg and self.__named_kw_args:
-#                     copy = dict()
-#                     for name in self.__named_kw_args:
-#                         copy[name] = kw[name]
-#                 for k, v in request.match_info.items():
-#                     if k in kw:
-#                         logging.info('有一样的参数 Duplicate arg name in named arg and kw args: %s' % k)
-#                     kw[k] = v
-#
-#         if self.__required_kw_args:
-#             for name in self.__required_kw_args:
-#                 if not name in kw:
-#                     return web.HTTPBadRequest(' 缺少参数 Missing argument: %s' % name)
-#         logging.info('call with args: %s' % str(kw))
-#         try:
-#             r = await  self.func(**kw)
-#             return r
-#         except APIError as e:
-#             return dict(error=e.error, data=e.data, message=e.message)
-
-
 def add_static(app):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)

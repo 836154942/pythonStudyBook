@@ -8,6 +8,9 @@ from webapp.coroweb import get, post
 
 from webapp.db.Models import User, Comment, Blog, next_id
 
+COOKIE_NAME = 'awesession'
+_COOKIE_KEY = 'gfhryuety'
+
 
 @get("/")
 async def index(request):
@@ -71,5 +74,72 @@ def api_register_user(*, email, name, passwd):
                 image='http://www.gravatar.com/avatar/%s?d=mm&s=120' % hashlib.md5(email.encode('utf-8')).hexdigest())
     yield from  user.save()
     print("保存用户成功")
-    # r = web.Response()
-    # r.set_cookie()
+    r = web.Response()
+    r.set_cookie(COOKIE_NAME, user2Cookie(user, 86400), max_age=86400, httponly=True)
+    user.passwd = '********'
+    r.content_type = 'application/json'
+    r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
+    return r
+
+
+def user2Cookie(user, max_age):
+    expires = str(int(time.time() + max_age))
+    s = "%s-%s-%s-%s" % (user.id, user.passwd, expires, _COOKIE_KEY)
+    L = [user.id, expires, hashlib.sha1(s.encode('utf-8')).hexdigest()]
+    return '-'.join(L)
+
+
+@asyncio.coroutine
+def cookie2user(cookie_str):
+    if not cookie_str:
+        return None
+    try:
+        L = cookie_str.split('-')
+        if len(L) != 3:
+            return None
+        uid, expries, sha1 = L
+        if int(expries) < time.time():
+            return None
+        user = yield from  User.find(uid)
+        if user is None:
+            return None
+        s = "%s-%s-%s-%s" % (uid, user.passwd, expries, _COOKIE_KEY)
+        if sha1 != hashlib.sha1(s.encode('utf-8')).hexdigest():
+            logging.info("cookie 错误")
+            return None
+        user.passwd = "*****"
+        return user
+    except Exception as e:
+        logging.exception(e)
+        return None
+
+
+@get('/signin')
+def signin():
+    return {
+        '__template__': 'signin.html'
+    }
+
+
+@post("/api/authenticate")
+def login(*, email, passwd):
+    if not email:
+        raise APIValueError('email', '不合法')
+    if not passwd:
+        raise APIValueError('passwd', "输入密码")
+    users = yield from User.findAll("email = '%s'" % email)
+    if len(users) == 0:
+        raise APIValueError('email', 'email not exist.')
+    user = users[0]
+    sha1 = hashlib.sha1()
+    sha1.update(user.id.encode('utf-8'))
+    sha1.update(b':')
+    sha1.update(passwd.encode('utf-8'))
+    if user.passwd != sha1.hexdigest():
+        raise APIValueError('passwd', '密码错误')
+    r = web.Response()
+    r.set_cookie(COOKIE_NAME, user2Cookie(user, 86400), max_age=86400, httponly=True)
+    user.passwd = '******'
+    r.content_type = 'application/json'
+    r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
+    return r

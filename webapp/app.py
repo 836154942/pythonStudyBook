@@ -9,6 +9,7 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from aiohttp import web
 import webapp.db.ORM
+from webapp.handlers import cookie2user, COOKIE_NAME
 
 
 def init_jinja2(app, **kw):
@@ -39,6 +40,25 @@ async def logger_factory(app, handler):
         return (await handler(request))
 
     return logger
+
+
+@asyncio.coroutine
+def auth_factory(app, handler):
+    @asyncio.coroutine
+    def auth(request):
+        logging.info('check user: %s %s' % (request.method, request.path))
+        request.__user__ = None
+        cookie_str = request.cookies.get(COOKIE_NAME)
+        if cookie_str:
+            user = yield from cookie2user(cookie_str)
+            if user:
+                logging.info('检测到有效cookie set current user: %s' % user.email)
+                request.__user__ = user
+        if request.path.startswith('/manage/') and (request.__user__ is None or not request.__user__.admin):
+            return web.HTTPFound('/signin')
+        return (yield from handler(request))
+
+    return auth
 
 
 async def data_factory(app, handler):
@@ -112,7 +132,7 @@ def data_timefilter(t):
 
 async def init(loop):
     await webapp.db.ORM.create_pool(loop=loop, user="root", password="a3071272", db='test')
-    app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
+    app = web.Application(loop=loop, middlewares=[logger_factory, response_factory, auth_factory])
     init_jinja2(app, filters=dict(datetime=data_timefilter))
     add_routes(app, 'handlers')
     add_static(app)

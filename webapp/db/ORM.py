@@ -40,8 +40,8 @@ async def select(sql, args, size=None):
     global __pool
     async with __pool.get() as conn:
         async with conn.cursor(aiomysql.DictCursor) as cur:
-            ss = sql.replace('?', '%s')
-            print("!!!!!!! %s" % ss)
+            ss =sql.replace('?', '%s')
+            print("")
             await cur.execute(ss, args or ())
             if size:
                 rs = await cur.fetchmany(size)
@@ -206,7 +206,6 @@ class Model(dict, metaclass=ModelMetaclass):
                 raise ValueError('Invalid limit value: %s' % str(limit))
         rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
-
     @classmethod
     @asyncio.coroutine
     def findNumber(cls, selectField, where=None, args=None):

@@ -2,7 +2,7 @@ import re, time, json, logging, hashlib, base64, asyncio
 
 from aiohttp import web
 from webapp import markdown2
-from webapp.apis import APIValueError, APIError, APIPermissionError
+from webapp.apis import APIValueError, APIError, APIPermissionError, Page
 from webapp.coroweb import get, post
 from webapp.db.Models import User, Comment, Blog, next_id
 
@@ -175,15 +175,17 @@ def manage_create_blog():
 @get('/api/blogs/{id}')
 def api_get_blog(*, id):
     blog = yield from Blog.find(id)
+    print("查到的博客是  %s" % blog.content)
     comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
     for c in comments:
         c.html_content = text2html(c.content)
-        blog.html_content = markdown2.markdown(blog.content)
-        return {
-            '__template__': 'blog.html',
-            'blog': blog,
-            'comments': comments
-        }
+    blog.html_content = markdown2.markdown(blog.content)
+    print("``````````````%s" % blog.html_content)
+    return {
+        '__template__': 'blog.html',
+        'blog': blog,
+        'comments': comments
+    }
 
 
 def text2html(text):
